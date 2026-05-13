@@ -2349,16 +2349,19 @@ body[data-variant="editorial"] .review .stars { color: var(--accent); }
   function getEffectiveTheme(saved) {
     return saved === 'auto' ? getSystemTheme() : saved;
   }
-  function applyTheme(theme) {
+  function applyTheme(theme, options = {}) {
     const effective = getEffectiveTheme(theme);
     const root = document.documentElement;
-    root.classList.add('no-transitions');
+    const suppressTransitions = !!options.suppressTransitions;
+    if (suppressTransitions) root.classList.add('no-transitions');
     document.body.setAttribute('data-theme', effective);
     const icon = document.getElementById('themeIcon');
     if (icon) icon.innerHTML = effective === 'light' ? moonSVG : sunSVG;
-    // force reflow so the style change is committed while transitions are disabled
-    void root.offsetHeight;
-    setTimeout(() => root.classList.remove('no-transitions'), 60);
+    if (suppressTransitions) {
+      // force reflow so the initial style change is committed while transitions are disabled
+      void root.offsetHeight;
+      setTimeout(() => root.classList.remove('no-transitions'), 60);
+    }
   }
   function toggleTheme() {
     const current = getEffectiveTheme(getSavedTheme());
@@ -2368,7 +2371,7 @@ body[data-variant="editorial"] .review .stars { color: var(--accent); }
   }
 
   // init
-  applyTheme(getSavedTheme());
+  applyTheme(getSavedTheme(), { suppressTransitions: true });
 
   // greeting + workshop status (combined into one conversational 2-line block)
   (function() {
